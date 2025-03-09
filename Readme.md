@@ -1,8 +1,8 @@
 # 天道模拟器 (Celestial Path Simulator)
 
-一个基于AI的修真模拟游戏，让玩家扮演天道系统，引导修真者的成长。
+中文 | [English](README_EN.md)
 
-[English Version Below](#english)
+一个基于AI的修真模拟游戏，让玩家扮演天道系统，引导修真者的成长。
 
 ## 项目简介
 
@@ -130,31 +130,3 @@ celestial-path-simulator/
 ## 许可证
 
 本项目采用 MIT 许可证
-
----
-
-<a name="english"></a>
-# Celestial Path Simulator
-
-An AI-powered cultivation simulation game where players act as the celestial system guiding cultivators' growth.
-
-[详细中文说明见上方](#天道模拟器-celestial-path-simulator)
-
-## Project Overview
-
-This is a unique text-based adventure game where players take on the role of a celestial system, guiding cultivators in their journey through a mystical world. The game uses AI generation technology to create a rich cultivation world and provide an immersive gaming experience.
-
-### Key Features
-
-- 🎮 **System Role-Playing**: Players act as the celestial system, assigning tasks and providing opportunities
-- 🌍 **Rich World Setting**: Combines various cultivation novel elements to build a complete mystical world
-- 🤖 **AI-Driven**: Uses advanced AI models to generate plots, dialogues, and tasks
-- 📝 **Dynamic Storyline**: Real-time story generation based on player choices
-- 💾 **Progress Saving**: Auto-saves game progress, supports character import/export
-- 🎨 **Customization**: Supports custom cultivation systems and world styles
-
-[Detailed features and installation guide in Chinese version above]
-
-## License
-
-This project is licensed under the MIT License
