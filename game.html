@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>天道模拟器 - 游戏</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body {
+            background: #1b2838;
+            color: #c6d4df;
+            font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .exit-btn {
+            background: linear-gradient(to bottom, #c33 5%, #900 95%) !important;
+            color: white !important;
+            margin-left: 20px;
+        }
+        
+        .exit-btn:hover {
+            background: linear-gradient(to bottom, #d44 5%, #a00 95%) !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loading-text">
+            <div class="loading-title">天道模拟器</div>
+            <div class="loading-status">正在初始化游戏世界...</div>
+            <div class="loading-progress">
+                <div class="loading-progress-fill"></div>
+            </div>
+            <div class="loading-detail"></div>
+        </div>
+    </div>
+
+    <div id="game-container" style="display: none;">
+        <div class="panels">
+            <div class="panel">
+                <h3>主角数据</h3>
+                <p>姓名：<span id="mc-name">未定</span></p>
+                <p>性别：<span id="mc-gender">未定</span></p>
+                <p>境界：<span id="mc-level" class="highlight">炼气初期</span></p>
+                <p>年龄：<span id="mc-age">18</span>岁</p>
+                <p>真气：<span id="mc-qi">0/100</span></p>
+                <p>道具：<span id="mc-items">无</span></p>
+            </div>
+            
+            <div class="panel">
+                <h3>世界状态</h3>
+                <p>当前时辰：<span id="world-time">早上</span></p>
+                <p>当前日期：<span id="world-day">一月初一</span></p>
+                <p>当前历法：<span id="world-era">天元历元年</span></p>
+                <div>境界体系：<span id="cultivation-system">
+                    <span>炼气境</span> → 
+                    <span>筑基境</span> → 
+                    <span>金丹境</span> → 
+                    <span>元婴境</span> →
+                    <span>化神境</span>
+                </span></div>
+            </div>
+        </div>
+
+        <div id="story-box"></div>
+
+        <div class="task-panel" style="display: none;" id="task-panel">
+            <h3>可选任务</h3>
+            <div id="task-options"></div>
+            <div class="loading-progress" id="task-loading-progress" style="display: none;">
+                <div class="loading-progress-fill"></div>
+                <div class="loading-text">正在生成任务...</div>
+            </div>
+            <div class="custom-task">
+                <input type="text" id="custom-task-input" placeholder="输入自定义任务">
+                <input type="text" id="custom-reward-input" placeholder="输入任务奖励">
+                <button onclick="game.submitCustomTask()">提交自定义任务</button>
+            </div>
+        </div>
+
+        <div class="story-progress-panel" style="display: none;" id="story-progress-panel">
+            <h3>剧情发展</h3>
+            <div id="story-options"></div>
+            <div class="loading-progress" id="story-loading-progress" style="display: none;">
+                <div class="loading-progress-fill"></div>
+                <div class="loading-text">正在生成剧情选项...</div>
+            </div>
+            <div class="custom-story">
+                <input type="text" id="custom-story-input" placeholder="输入自定义剧情">
+                <button onclick="game.submitCustomStory()">提交自定义剧情</button>
+            </div>
+        </div>
+
+        <div>
+            <button onclick="game.showTaskPanel()">派发任务</button>
+            <button onclick="game.showStoryProgressPanel()">推进剧情</button>
+            <button onclick="game.toggleSystem()">切换系统模式</button>
+            <button onclick="game.exitGame()" class="exit-btn">退出游戏</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import CONFIG from './js/config/config.js';
+        import AIService from './js/services/ai-service.js';
+        import GameState from './js/game-state.js';
+        import UIManager from './js/ui/ui-manager.js';
+        import StoryManager from './js/story-manager.js';
+        import FileManager from './js/services/file-manager.js';
+
+        class Game {
+            constructor() {
+                // 从localStorage获取API密钥
+                let apiKey = localStorage.getItem('apiKey');
+                
+                // 如果没有API密钥，提示用户输入
+                if (!apiKey) {
+                    apiKey = prompt('请输入API密钥（可以在设置页面配置）:');
+                    if (apiKey) {
+                        localStorage.setItem('apiKey', apiKey);
+                    }
+                }
+                
+                this.gameState = new GameState();
+                this.uiManager = new UIManager();
+                this.fileManager = new FileManager();
+                this.aiService = new AIService(apiKey || CONFIG.API_KEY);
+                this.storyManager = new StoryManager(
+                    this.gameState,
+                    this.aiService,
+                    this.fileManager,
+                    this.uiManager
+                );
+                
+                // 设置相互引用
+                this.aiService.setGameState(this.gameState);
+                
+                // 如果没有API密钥，显示提示
+                if (!apiKey) {
+                    this.uiManager.showFeedback('未设置API密钥，将使用默认生成方案', 'warning');
+                }
+                
+                console.log('初始化游戏...');
+            }
+
+            /**
+             * 初始化游戏
+             */
+            async initialize() {
+                try {
+                    // 绑定事件监听器
+                    this.gameState.on('characterInfoUpdated', (info) => {
+                        console.log('角色信息更新:', info);
+                        this.uiManager.updateCharacterInfo(info);
+                    });
+                    
+                    this.gameState.on('worldInfoUpdated', (info) => {
+                        console.log('世界信息更新:', info);
+                        this.uiManager.updateWorldInfo(info);
+                    });
+
+                    // 获取角色基本信息
+                    const characterName = prompt('请输入角色名称:') || '无名';
+                    const characterGender = prompt('请输入角色性别:') || '男';
+
+                    // 初始化游戏状态
+                    await this.gameState.initialize({
+                        worldState: {
+                            time: '早上',
+                            day: '一月初一',
+                            era: '天元历元年'
+                        },
+                        characterName,
+                        characterGender
+                    });
+
+                    // 更新UI显示
+                    this.uiManager.updateCharacterInfo(this.gameState.getCharacterInfo());
+                    this.uiManager.updateWorldInfo(this.gameState.getWorldInfo());
+
+                    // 初始化故事管理器
+                    await this.storyManager.initialize();
+
+                    return true;
+                } catch (error) {
+                    console.error('初始化游戏失败:', error);
+                    throw error;
+                }
+            }
+
+            /**
+             * 开始游戏
+             */
+            async start() {
+                try {
+                    await this.initialize();
+                    this.uiManager.showGameContainer();
+                } catch (error) {
+                    this.uiManager.showError(error);
+                }
+            }
+
+            showTaskPanel() {
+                this.uiManager.showTaskPanel();
+                const taskLoadingProgress = document.getElementById('task-loading-progress');
+                const taskOptions = document.getElementById('task-options');
+                
+                taskOptions.innerHTML = '';
+                taskLoadingProgress.style.display = 'block';
+                
+                // 模拟进度条
+                const progressFill = taskLoadingProgress.querySelector('.loading-progress-fill');
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += 5;
+                    if (progress <= 90) {
+                        progressFill.style.width = `${progress}%`;
+                    }
+                }, 100);
+                
+                this.storyManager.generateTasks().then(tasks => {
+                    clearInterval(progressInterval);
+                    progressFill.style.width = '100%';
+                    
+                    setTimeout(() => {
+                        taskLoadingProgress.style.display = 'none';
+                        
+                        tasks.forEach(task => {
+                            const taskBtn = document.createElement('button');
+                            taskBtn.innerHTML = `${task.task}<br>奖励: ${task.reward}`;
+                            taskBtn.onclick = () => this.storyManager.assignTask(task.task, task.reward);
+                            taskOptions.appendChild(taskBtn);
+                        });
+                    }, 500);
+                }).catch(error => {
+                    clearInterval(progressInterval);
+                    taskLoadingProgress.style.display = 'none';
+                    console.error('生成任务失败:', error);
+                    this.uiManager.logStory(`[系统] 生成任务失败: ${error.message}`, '');
+                });
+            }
+
+            showStoryProgressPanel() {
+                const storyProgressPanel = document.getElementById('story-progress-panel');
+                const storyOptions = document.getElementById('story-options');
+                const storyLoadingProgress = document.getElementById('story-loading-progress');
+                
+                storyProgressPanel.style.display = 'block';
+                storyOptions.innerHTML = '';
+                storyLoadingProgress.style.display = 'block';
+                
+                // 模拟进度条
+                const progressFill = storyLoadingProgress.querySelector('.loading-progress-fill');
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += 5;
+                    if (progress <= 90) {
+                        progressFill.style.width = `${progress}%`;
+                    }
+                }, 100);
+                
+                this.aiService.generateStoryProgress().then(result => {
+                    clearInterval(progressInterval);
+                    progressFill.style.width = '100%';
+                    
+                    setTimeout(() => {
+                        storyLoadingProgress.style.display = 'none';
+                        
+                        if (result && result.options) {
+                            result.options.forEach(option => {
+                                const optionBtn = document.createElement('button');
+                                optionBtn.textContent = option.description;
+                                
+                                if (option.id === 4) {
+                                    // 自定义选项
+                                    optionBtn.onclick = () => {
+                                        document.getElementById('custom-story-input').focus();
+                                    };
+                                } else {
+                                    // AI生成的选项
+                                    optionBtn.onclick = () => this.selectStoryOption(option.description);
+                                }
+                                
+                                storyOptions.appendChild(optionBtn);
+                            });
+                        } else {
+                            this.uiManager.logStory(`[系统] 生成剧情选项失败`, '');
+                        }
+                    }, 500);
+                }).catch(error => {
+                    clearInterval(progressInterval);
+                    storyLoadingProgress.style.display = 'none';
+                    console.error('生成剧情选项失败:', error);
+                    this.uiManager.logStory(`[系统] 生成剧情选项失败: ${error.message}`, '');
+                });
+            }
+            
+            selectStoryOption(option) {
+                this.uiManager.logStory(`[剧情] 选择了: ${option}`, `【${this.gameState.getCurrentTimePeriod().name}】`);
+                document.getElementById('story-progress-panel').style.display = 'none';
+                
+                // 推进游戏时间
+                const newTime = this.gameState.advanceTime();
+                this.uiManager.updateWorldInfo(this.gameState.getWorldInfo());
+                this.uiManager.logStory(`[系统] 时间推进到 ${newTime.time} ${newTime.day}`, '');
+                
+                // 生成新的行动
+                this.storyManager.generateAction();
+            }
+            
+            submitCustomStory() {
+                const customStory = document.getElementById('custom-story-input').value;
+                if (customStory) {
+                    this.selectStoryOption(customStory);
+                    document.getElementById('custom-story-input').value = '';
+                } else {
+                    alert('请输入自定义剧情');
+                }
+            }
+            
+            async progressStory() {
+                this.showStoryProgressPanel();
+            }
+
+            submitCustomTask() {
+                const task = document.getElementById('custom-task-input').value;
+                const reward = document.getElementById('custom-reward-input').value;
+                if(task && reward) {
+                    this.storyManager.assignTask(task, reward);
+                    document.getElementById('custom-task-input').value = '';
+                    document.getElementById('custom-reward-input').value = '';
+                    this.uiManager.hideTaskPanel();
+                }
+            }
+
+            toggleSystem() {
+                const oldMode = this.gameState.systemType;
+                const newMode = oldMode === '修仙系统' ? '魔道系统' : '修仙系统';
+                this.gameState.systemType = newMode;
+                this.uiManager.logStory(
+                    `[系统] 已从${oldMode}切换至${newMode}`,
+                    `【${this.gameState.getCurrentTime()}】`
+                );
+            }
+
+            async exitGame() {
+                if (confirm('确定要退出游戏吗？游戏进度将会自动保存。')) {
+                    try {
+                        // 保存最终的游戏状态
+                        if (this.storyManager) {
+                            await this.storyManager.saveStory();
+                            // 停止故事循环
+                            this.storyManager.stopStoryLoop();
+                            
+                            // 保存角色信息
+                            const characterInfo = this.gameState.getCharacterInfo();
+                            const profile = await this.storyManager.characterProfile;
+                            if (profile) {
+                                await this.storyManager.fileManager.saveCharacterProfile(
+                                    characterInfo.name,
+                                    profile
+                                );
+                            }
+                        }
+                        
+                        // 保存必要的配置（如API密钥）到sessionStorage
+                        const apiKey = this.gameConfig?.apiKey;
+                        if (apiKey) {
+                            sessionStorage.setItem('apiKey', apiKey);
+                        }
+                        
+                        // 清除游戏配置
+                        localStorage.removeItem('gameConfig');
+                        
+                        // 显示保存成功消息
+                        alert('游戏进度已保存！');
+                        
+                        // 返回到配置页面
+                        window.location.href = 'story_config.html';
+                    } catch (error) {
+                        console.error('保存游戏状态失败:', error);
+                        alert('保存游戏状态时出现错误，部分数据可能未能保存。');
+                        window.location.href = 'story_config.html';
+                    }
+                }
+            }
+        }
+
+        // 等待页面加载完成
+        document.addEventListener('DOMContentLoaded', async () => {
+            const game = new Game();
+            await game.start();
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>天道模拟器 - 世界配置</title>
+    <style>
+        body {
+            background: #1b2838;
+            color: #c6d4df;
+            font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: linear-gradient(to bottom, rgba(27, 40, 56, 0.9), rgba(27, 40, 56, 0.95)), url('https://steamcdn-a.akamaihd.net/steamcommunity/public/images/items/1121910/d850ddb8f57ba1c480c9c5e0a4f19dba3a453cdb.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        #config-panel {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 3px;
+            max-width: 900px;
+            margin: 30px auto;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid #355069;
+        }
+        .config-section {
+            margin-bottom: 30px;
+            background: rgba(27, 40, 56, 0.6);
+            padding: 20px;
+            border-radius: 3px;
+            border: 1px solid #355069;
+        }
+        .config-section h3 {
+            color: #66c0f4;
+            border-bottom: 2px solid #355069;
+            padding-bottom: 10px;
+            margin-top: 0;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+        }
+        .config-section h3::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background: #66c0f4;
+            margin-right: 10px;
+            border-radius: 2px;
+        }
+        .option-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        .option-btn {
+            background: linear-gradient(to bottom, #355069 5%, #2a3f54 95%);
+            border: none;
+            color: #c6d4df;
+            padding: 8px 20px;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            min-width: 100px;
+            text-align: center;
+        }
+        .option-btn:hover {
+            background: linear-gradient(to bottom, #3d5b78 5%, #2e4459 95%);
+        }
+        .option-btn.selected {
+            background: linear-gradient(to bottom, #66c0f4 5%, #3995db 95%);
+            color: #fff;
+        }
+        #start-btn {
+            display: block;
+            width: 250px;
+            margin: 30px auto;
+            padding: 15px;
+            font-size: 1.3em;
+            background: linear-gradient(to bottom, #a4d007 5%, #536904 95%);
+            border: none;
+            border-radius: 2px;
+            color: #fff;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        #start-btn:hover {
+            background: linear-gradient(to bottom, #b6e30b 5%, #6b8705 95%);
+        }
+        #start-btn:disabled {
+            background: linear-gradient(to bottom, #4d4d4d 5%, #2d2d2d 95%);
+            cursor: not-allowed;
+        }
+        .input-field {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #355069;
+            color: #c6d4df;
+            border-radius: 2px;
+            margin-top: 8px;
+            font-family: inherit;
+        }
+        .input-field:focus {
+            border-color: #66c0f4;
+            outline: none;
+        }
+        .description-area {
+            width: 100%;
+            height: 100px;
+            resize: vertical;
+            margin-top: 10px;
+            font-family: inherit;
+        }
+        .helper-text {
+            font-size: 0.9em;
+            color: #8f98a0;
+            margin-top: 8px;
+        }
+        .flex-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .generate-btn {
+            background: linear-gradient(to bottom, #355069 5%, #2a3f54 95%);
+            border: none;
+            color: #c6d4df;
+            padding: 10px 20px;
+            border-radius: 2px;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .generate-btn:hover {
+            background: linear-gradient(to bottom, #3d5b78 5%, #2e4459 95%);
+        }
+        .generate-btn::before {
+            content: '⚡';
+        }
+        .loading-indicator {
+            display: none;
+            color: #66c0f4;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #1b2838;
+            margin-top: 10px;
+            border-radius: 2px;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: #66c0f4;
+            transition: width 0.3s ease;
+        }
+        .config-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .config-header h2 {
+            color: #66c0f4;
+            font-size: 2em;
+            margin: 0;
+            text-shadow: 0 0 10px rgba(102, 192, 244, 0.5);
+        }
+        .config-header p {
+            color: #8f98a0;
+            margin-top: 10px;
+        }
+        .character-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #355069;
+            border-radius: 2px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        
+        .character-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #355069;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .character-item:hover {
+            background: rgba(102, 192, 244, 0.1);
+        }
+        
+        .character-item:last-child {
+            border-bottom: none;
+        }
+        
+        .character-info {
+            flex: 1;
+        }
+        
+        .character-name {
+            color: #66c0f4;
+            font-weight: bold;
+        }
+        
+        .character-date {
+            color: #8f98a0;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .import-btn {
+            background: linear-gradient(to bottom, #355069 5%, #2a3f54 95%);
+            border: none;
+            color: #c6d4df;
+            padding: 5px 15px;
+            border-radius: 2px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        
+        .import-btn:hover {
+            background: linear-gradient(to bottom, #3d5b78 5%, #2e4459 95%);
+        }
+    </style>
+</head>
+<body>
+    <div id="config-panel">
+        <div class="config-header">
+            <h2>天道模拟器</h2>
+            <p>配置你的修仙世界，开启独特的道途</p>
+        </div>
+        
+        <div class="config-section">
+            <h3>导入角色</h3>
+            <div id="character-list" class="character-list">
+                <p class="helper-text">正在加载已保存的角色...</p>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h3>API设置</h3>
+            <div>
+                <input type="password" id="api-key-input" class="input-field" placeholder="请输入API密钥">
+                <div>
+                    <select id="model-select" class="input-field">
+                        <optgroup label="推荐模型 - 支持16384 tokens">
+                            <option value="Pro/deepseek-ai/DeepSeek-R1">Pro/DeepSeek-R1 (推荐)</option>
+                            <option value="Qwen/QVQ-72B-Preview">Qwen/QVQ-72B-Preview</option>
+                        </optgroup>
+                        <optgroup label="其他模型 - 支持8192 tokens">
+                            <option value="Qwen/QwQ-32B-Preview">Qwen/QwQ-32B-Preview</option>
+                            <option value="deepseek-ai/DeepSeek-R1">DeepSeek-R1</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <p class="helper-text">选择更强大的模型可以获得更好的生成效果</p>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h3>世界设定</h3>
+            <div class="option-group" data-type="single" data-group="time">
+                <button class="option-btn" data-value="ancient">上古仙侠</button>
+                <button class="option-btn" data-value="xianxia">传统仙侠</button>
+                <button class="option-btn" data-value="modern">现代修真</button>
+                <button class="option-btn" data-value="future">未来仙途</button>
+                <button class="option-btn" data-value="fictional">异界仙域</button>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h3>主角设定</h3>
+            <div class="option-group" data-type="single" data-group="gender">
+                <button class="option-btn" data-value="male">男性修士</button>
+                <button class="option-btn" data-value="female">女性修士</button>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h3>系统类型</h3>
+            <div class="option-group" data-type="single" data-group="systemType">
+                <button class="option-btn" data-value="cultivation">传统修炼系统</button>
+                <button class="option-btn" data-value="artifact">法器养成系统</button>
+                <button class="option-btn" data-value="alchemy">丹道系统</button>
+                <button class="option-btn" data-value="formation">阵法系统</button>
+                <button class="option-btn" data-value="custom">自定义系统</button>
+            </div>
+            <div id="custom-system-input" style="display: none;">
+                <input type="text" class="input-field" placeholder="输入自定义系统名称">
+                <div class="flex-container">
+                    <div style="flex: 1;">
+                        <textarea id="system-description" class="input-field description-area" 
+                            placeholder="请输入系统简介（例如：系统如何运作、获得经验的方式等）"></textarea>
+                        <div class="loading-indicator">
+                            <span class="status-text">正在生成系统简介...</span>
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="generate-btn" onclick="generateSystemDescription()">AI生成简介</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h3>修炼特性</h3>
+            <div class="option-group" data-type="multiple" data-group="cultivation_features">
+                <button class="option-btn" data-value="elemental">五行属性</button>
+                <button class="option-btn" data-value="sword">剑道传承</button>
+                <button class="option-btn" data-value="body">体修之路</button>
+                <button class="option-btn" data-value="talisman">符箓之道</button>
+                <button class="option-btn" data-value="beast">御兽之道</button>
+                <button class="option-btn" data-value="medical">医道传承</button>
+                <button class="option-btn" data-value="illusion">幻术之道</button>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h3>世界风格</h3>
+            <div class="option-group" data-type="multiple" data-group="world_style">
+                <button class="option-btn" data-value="orthodox">正统修真</button>
+                <button class="option-btn" data-value="dark">阴暗诡秘</button>
+                <button class="option-btn" data-value="light">轻松日常</button>
+                <button class="option-btn" data-value="competitive">争锋修道</button>
+                <button class="option-btn" data-value="exploration">探索神秘</button>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h3>剧情倾向</h3>
+            <div class="option-group" data-type="multiple" data-group="plot_tendency">
+                <button class="option-btn" data-value="adventure">历练冒险</button>
+                <button class="option-btn" data-value="politics">宗门争斗</button>
+                <button class="option-btn" data-value="romance">仙缘情劫</button>
+                <button class="option-btn" data-value="revenge">复仇之路</button>
+                <button class="option-btn" data-value="mystery">探索秘境</button>
+            </div>
+        </div>
+
+        <button id="start-btn" onclick="startGame()" disabled>开启修仙之旅</button>
+    </div>
+
+    <script type="module">
+        import FileManager from './src/services/file-manager.js';
+        
+        const fileManager = new FileManager();
+        
+        // 加载已保存的角色列表
+        async function loadCharacterList() {
+            const characterList = document.getElementById('character-list');
+            characterList.innerHTML = '<p class="helper-text">正在加载角色列表...</p>';
+            
+            try {
+                console.log('开始加载角色列表...');
+                const files = await fileManager.getCharacterFiles();
+                console.log('获取到的角色文件:', files);
+                
+                if (!files || files.length === 0) {
+                    characterList.innerHTML = `
+                        <p class="helper-text">暂无保存的角色，开始游戏后将自动保存。</p>
+                        <p class="helper-text" style="color: #66c0f4; margin-top: 10px;">
+                            提示：角色信息保存在 characters 目录，故事进度保存在 stories 目录。
+                        </p>
+                    `;
+                    return;
+                }
+                
+                characterList.innerHTML = files
+                    .sort((a, b) => new Date(b.modified) - new Date(a.modified))
+                    .map(file => {
+                        const date = new Date(file.modified);
+                        const characterName = file.name.split('_')[0];
+                        return `
+                            <div class="character-item">
+                                <div class="character-info">
+                                    <div class="character-name">${characterName}</div>
+                                    <div class="character-date">最后修改时间: ${date.toLocaleString()}</div>
+                                    <div class="character-path" style="color: #8f98a0; font-size: 0.8em;">
+                                        文件路径: ${file.path}
+                                    </div>
+                                </div>
+                                <button class="import-btn" onclick="importCharacter('${file.path}')">导入角色</button>
+                            </div>
+                        `;
+                    })
+                    .join('');
+            } catch (error) {
+                console.error('加载角色列表失败:', error);
+                characterList.innerHTML = `
+                    <p class="helper-text" style="color: #ff4444;">加载角色列表失败: ${error.message}</p>
+                    <p class="helper-text">请检查 characters 目录是否存在并且有正确的访问权限。</p>
+                    <button onclick="loadCharacterList()" class="option-btn" style="margin-top: 10px;">
+                        重试加载
+                    </button>
+                `;
+            }
+        }
+        
+        // 导入角色
+        window.importCharacter = async function(filePath) {
+            try {
+                const profile = await fileManager.loadCharacterProfile(filePath);
+                if (!profile) {
+                    throw new Error('角色文件为空');
+                }
+
+                // 解析角色信息
+                const nameMatch = profile.match(/姓名：(.+)/);
+                const genderMatch = profile.match(/性别：(.+)/);
+                const levelMatch = profile.match(/境界：(.+)/);
+                
+                if (!nameMatch || !genderMatch || !levelMatch) {
+                    throw new Error('角色信息格式不正确');
+                }
+
+                // 更新配置
+                const gender = genderMatch[1].trim() === '男' ? 'male' : 'female';
+                document.querySelectorAll('.option-group[data-group="gender"] .option-btn').forEach(btn => {
+                    if (btn.dataset.value === gender) {
+                        btn.click();
+                    }
+                });
+
+                // TODO: 根据角色信息设置其他配置项
+                
+                alert(`成功导入角色：${nameMatch[1].trim()}\n当前境界：${levelMatch[1].trim()}`);
+            } catch (error) {
+                console.error('导入角色失败:', error);
+                alert(`导入角色失败: ${error.message}`);
+            }
+        }
+        
+        // 页面加载时加载角色列表
+        window.addEventListener('load', loadCharacterList);
+
+        // 配置系统
+        let gameConfig = {
+            apiKey: '',
+            model: 'Pro/deepseek-ai/DeepSeek-R1',
+            maxTokens: 16384,
+            gender: '',
+            systemType: '',
+            customSystem: '',
+            systemDescription: '',
+            time: '',
+            cultivation_features: [],
+            world_style: [],
+            plot_tendency: []
+        };
+
+        // 将gameConfig暴露到全局作用域
+        window.gameConfig = gameConfig;
+
+        // 将startGame函数暴露到全局作用域
+        window.startGame = function() {
+            localStorage.setItem('gameConfig', JSON.stringify(gameConfig));
+            window.location.href = 'game.html';
+        };
+
+        // 尝试从sessionStorage加载API密钥
+        window.onload = function() {
+            const savedApiKey = sessionStorage.getItem('apiKey');
+            if (savedApiKey) {
+                document.getElementById('api-key-input').value = savedApiKey;
+                gameConfig.apiKey = savedApiKey;
+                checkCanStart();
+            }
+        };
+
+        // API密钥和模型选择处理
+        document.getElementById('api-key-input').addEventListener('input', async (e) => {
+            const apiKey = e.target.value.trim();
+            gameConfig.apiKey = apiKey;
+            
+            // 保存到sessionStorage
+            sessionStorage.setItem('apiKey', apiKey);
+            
+            // 如果API密钥长度大于50，尝试验证
+            if (apiKey.length > 50) {
+                try {
+                    const apiService = new AIService();
+                    await apiService.validateApiKey(apiKey);
+                    // 验证成功，显示成功提示
+                    alert('API密钥验证成功！');
+                } catch (error) {
+                    // 验证失败，显示错误信息
+                    alert(`API密钥验证失败：${error.message}`);
+                    e.target.focus();
+                }
+            }
+            
+            checkCanStart();
+        });
+
+        document.getElementById('model-select').addEventListener('change', (e) => {
+            gameConfig.model = e.target.value;
+            gameConfig.maxTokens = e.target.value.includes('QwQ-32B-Preview') || 
+                                 e.target.value === 'deepseek-ai/DeepSeek-R1' ? 8192 : 16384;
+        });
+
+        // 选项点击处理
+        document.querySelectorAll('.option-group').forEach(group => {
+            const type = group.dataset.type;
+            const groupName = group.dataset.group;
+            
+            group.querySelectorAll('.option-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (type === 'single') {
+                        group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        gameConfig[groupName] = btn.dataset.value;
+                        
+                        if (groupName === 'systemType') {
+                            const customInput = document.getElementById('custom-system-input');
+                            if (btn.dataset.value === 'custom') {
+                                customInput.style.display = 'block';
+                                const input = customInput.querySelector('input');
+                                const description = document.getElementById('system-description');
+                                
+                                input.addEventListener('input', (e) => {
+                                    gameConfig.customSystem = e.target.value;
+                                    checkCanStart();
+                                });
+                                
+                                description.addEventListener('input', (e) => {
+                                    gameConfig.systemDescription = e.target.value;
+                                    checkCanStart();
+                                });
+                            } else {
+                                customInput.style.display = 'none';
+                                gameConfig.customSystem = '';
+                                gameConfig.systemDescription = '';
+                            }
+                        }
+                    } else {
+                        btn.classList.toggle('selected');
+                        const value = btn.dataset.value;
+                        if (btn.classList.contains('selected')) {
+                            if (!gameConfig[groupName].includes(value)) {
+                                gameConfig[groupName].push(value);
+                            }
+                        } else {
+                            gameConfig[groupName] = gameConfig[groupName].filter(v => v !== value);
+                        }
+                    }
+                    checkCanStart();
+                });
+            });
+        });
+
+        // 检查是否可以开始游戏
+        function checkCanStart() {
+            const isValid = gameConfig.apiKey && 
+                          gameConfig.gender &&
+                          gameConfig.systemType &&
+                          (gameConfig.systemType !== 'custom' || (gameConfig.customSystem && gameConfig.systemDescription)) &&
+                          gameConfig.time && 
+                          gameConfig.cultivation_features.length > 0 && 
+                          gameConfig.world_style.length > 0 &&
+                          gameConfig.plot_tendency.length > 0;
+            
+            document.getElementById('start-btn').disabled = !isValid;
+        }
+
+        // AI服务类
+        class AIService {
+            constructor() {
+                this.API_URL = 'https://api.siliconflow.cn/v1/chat/completions';
+            }
+
+            async validateApiKey(apiKey) {
+                try {
+                    const response = await fetch(this.API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${apiKey}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            model: 'deepseek-ai/DeepSeek-R1',
+                            messages: [{ role: "user", content: "test" }],
+                            max_tokens: 10
+                        })
+                    });
+
+                    if (response.status === 403) {
+                        throw new Error('API密钥无效，请检查密钥是否正确');
+                    } else if (!response.ok) {
+                        throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
+                    }
+
+                    return true;
+                } catch (error) {
+                    console.error('API密钥验证失败:', error);
+                    throw error;
+                }
+            }
+
+            async generateContent(messages) {
+                try {
+                    // 先验证API密钥
+                    await this.validateApiKey(gameConfig.apiKey);
+
+                    const options = {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${gameConfig.apiKey}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            model: gameConfig.model,
+                            messages: messages,
+                            stream: false,
+                            max_tokens: gameConfig.maxTokens,
+                            temperature: 0.7,
+                            top_p: 0.7,
+                            top_k: 50,
+                            frequency_penalty: 0.5,
+                            n: 1,
+                            response_format: { type: "text" }
+                        })
+                    };
+
+                    const response = await fetch(this.API_URL, options);
+                    if (!response.ok) {
+                        throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    return data.choices[0].message.content;
+                } catch (error) {
+                    console.error('AI生成错误:', error);
+                    alert(`AI生成错误: ${error.message}\n\n如果是API密钥问题，请确保：\n1. 密钥格式正确\n2. 密钥未过期\n3. 账户余额充足`);
+                    return null;
+                }
+            }
+        }
+
+        const aiService = new AIService();
+
+        // AI生成系统简介
+        async function generateSystemDescription() {
+            const systemInput = document.querySelector('#custom-system-input input').value;
+            if (!systemInput) {
+                alert('请先输入自定义系统名称');
+                return;
+            }
+
+            const loadingIndicator = document.querySelector('.loading-indicator');
+            const progressBar = loadingIndicator.querySelector('.progress-bar');
+            const progressBarFill = progressBar.querySelector('.progress-bar-fill');
+            const statusText = loadingIndicator.querySelector('.status-text');
+            const descriptionArea = document.getElementById('system-description');
+            const generateBtn = document.querySelector('.generate-btn');
+
+            // 显示加载状态
+            loadingIndicator.style.display = 'block';
+            progressBar.style.display = 'block';
+            generateBtn.disabled = true;
+            
+            try {
+                // 模拟进度条
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += 5;
+                    if (progress <= 90) {
+                        progressBarFill.style.width = `${progress}%`;
+                    }
+                }, 100);
+
+                // 调用AI服务生成描述
+                const aiService = new AIService(gameConfig.apiKey, gameConfig.model);
+                const prompt = `请为名为"${systemInput}"的修真系统生成一段简介。要求：
+1. 描述系统的核心特点
+2. 说明如何在该系统中获得进步
+3. 有什么独特的修炼方式
+4. 大约150字左右
+5. 符合修真小说的风格`;
+
+                const response = await aiService.generateContent([{
+                    role: "system",
+                    content: prompt
+                }]);
+
+                clearInterval(progressInterval);
+                progressBarFill.style.width = '100%';
+
+                if (response) {
+                    descriptionArea.value = response;
+                } else {
+                    throw new Error('生成失败');
+                }
+            } catch (error) {
+                console.error('生成系统简介失败:', error);
+                statusText.textContent = '生成失败，请重试';
+                statusText.style.color = '#ff4444';
+            } finally {
+                // 恢复按钮状态
+                generateBtn.disabled = false;
+                
+                // 2秒后隐藏加载状态
+                setTimeout(() => {
+                    loadingIndicator.style.display = 'none';
+                    progressBar.style.display = 'none';
+                    progressBarFill.style.width = '0%';
+                    statusText.textContent = '正在生成系统简介...';
+                    statusText.style.color = '#66c0f4';
+                }, 2000);
+            }
+        }
+    </script>
+</body>
+</html> 
