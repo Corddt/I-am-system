@@ -93,20 +93,20 @@ node server.js
 
 ```
 celestial-path-simulator/
-├── js/
-│   ├── ai-service.js      # AI服务接口
-│   ├── file-manager.js    # 文件管理
-│   ├── story-manager.js   # 故事管理
-│   ├── game-state.js      # 游戏状态
-│   ├── ui-manager.js      # 界面管理
-│   └── config.js          # 配置文件
-├── css/
-│   └── styles.css         # 样式文件
-├── characters/            # 角色存档
-├── stories/              # 故事存档
-├── server.js             # 服务器
-├── game.html             # 游戏主页面
-└── story_config.html     # 配置页面
+├── src/                  # 源代码目录
+│   ├── config/          # 配置文件
+│   ├── services/       # 服务类
+│   └── ui/            # 用户界面组件
+├── public/             # 静态资源
+│   ├── css/           # 样式文件
+│   └── js/            # 客户端脚本
+├── data/               # 数据存储
+│   ├── characters/    # 角色存档
+│   └── stories/       # 故事存档
+├── game.html           # 游戏主页面
+├── story_config.html   # 故事配置页面
+├── server.js          # 服务器入口
+└── package.json       # 项目配置
 ```
 
 ## 开发计划

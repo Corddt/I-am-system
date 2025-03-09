@@ -1,10 +1,12 @@
 class FileManager {
     constructor() {
-        this.charactersDir = 'characters';
-        this.storiesDir = 'stories';
+        this.directories = {
+            characters: 'data/characters',
+            stories: 'data/stories'
+        };
         console.log('[FileManager] 构造函数被调用，目录设置为:', {
-            characters: this.charactersDir,
-            stories: this.storiesDir
+            characters: this.directories.characters,
+            stories: this.directories.stories
         });
         this.ensureDirectoriesExist();
     }
@@ -15,10 +17,10 @@ class FileManager {
             console.log('确保必要目录存在...');
             
             // 创建角色目录
-            await this.ensureDirectoryExists(this.charactersDir);
+            await this.ensureDirectoryExists(this.directories.characters);
             
             // 创建故事目录
-            await this.ensureDirectoryExists(this.storiesDir);
+            await this.ensureDirectoryExists(this.directories.stories);
             
             console.log('目录创建成功');
         } catch (error) {
@@ -71,10 +73,10 @@ class FileManager {
         
         try {
             // 确保角色目录存在
-            await this.ensureDirectoryExists(this.charactersDir);
+            await this.ensureDirectoryExists(this.directories.characters);
             
             // 生成文件名 - 角色文件使用固定名称
-            const filename = `${this.charactersDir}/${characterName}.md`;
+            const filename = `${this.directories.characters}/${characterName}.md`;
             console.log('[FileManager] 保存角色文件:', filename);
             
             // 如果是对象，转换为Markdown格式
@@ -118,11 +120,11 @@ class FileManager {
         
         try {
             // 确保故事目录存在
-            await this.ensureDirectoryExists(this.storiesDir);
+            await this.ensureDirectoryExists(this.directories.stories);
             
             // 生成文件名 - 故事文件使用时间戳
             const timestamp = new Date().toISOString().replace(/[:.]/g, '').slice(0, 15);
-            const filename = `${this.storiesDir}/${characterName}_${timestamp}.md`;
+            const filename = `${this.directories.stories}/${characterName}_${timestamp}.md`;
             
             console.log('[FileManager] 保存故事文件:', filename);
             
@@ -206,7 +208,7 @@ ${new Date().toLocaleString()}`;
     async getCharacterFiles() {
         try {
             console.log('开始获取角色文件列表...');
-            console.log('检查目录:', this.charactersDir);
+            console.log('检查目录:', this.directories.characters);
 
             // 确保目录存在
             await fetch('/api/save-file', {
@@ -215,7 +217,7 @@ ${new Date().toLocaleString()}`;
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    filename: `${this.charactersDir}/.gitkeep`,
+                    filename: `${this.directories.characters}/.gitkeep`,
                     content: ''
                 })
             });
@@ -226,7 +228,7 @@ ${new Date().toLocaleString()}`;
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    directory: this.charactersDir
+                    directory: this.directories.characters
                 })
             });
             
@@ -313,9 +315,9 @@ ${new Date().toLocaleString()}`;
         
         try {
             // 确保角色目录存在
-            await this.ensureDirectoryExists(this.charactersDir);
+            await this.ensureDirectoryExists(this.directories.characters);
             
-            const response = await fetch(`/api/list-files?directory=${this.charactersDir}`);
+            const response = await fetch(`/api/list-files?directory=${this.directories.characters}`);
             
             if (!response.ok) {
                 throw new Error(`获取角色列表失败: ${response.status}`);
@@ -339,7 +341,7 @@ ${new Date().toLocaleString()}`;
             // 获取文件的修改时间
             const fileDetails = await Promise.all(files.map(async (file) => {
                 try {
-                    const statResponse = await fetch(`/api/file-stats?filename=${this.charactersDir}/${file}`);
+                    const statResponse = await fetch(`/api/file-stats?filename=${this.directories.characters}/${file}`);
                     
                     if (!statResponse.ok) {
                         console.warn(`[FileManager] 获取文件 ${file} 的状态失败:`, statResponse.status);
@@ -371,7 +373,7 @@ ${new Date().toLocaleString()}`;
             
             const sortedFiles = fileDetails.map(file => ({
                 name: file.name,
-                path: `${this.charactersDir}/${file.name}`,
+                path: `${this.directories.characters}/${file.name}`,
                 mtime: file.mtime
             }));
             
